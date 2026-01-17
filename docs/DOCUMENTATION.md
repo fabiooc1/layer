@@ -1,4 +1,5 @@
 # Layer
+
 Uma loja de roupas online minimalista com foco em arquitetura limpa.
 
 ## Visão Geral
@@ -6,7 +7,9 @@ Uma loja de roupas online minimalista com foco em arquitetura limpa.
 O projeto Layer consiste em um e-commerce de moda com duas interfaces principais: uma Storefront (Landing Page e Loja) para o cliente final e um Painel Administrativo para gestão do negócio. O sistema será construído utilizando Next.js aplicando os conceitos de Clean Architecture para garantir desacoplamento, testabilidade e longevidade do código.
 
 #### 1. Requisitos Funcionais (RF)
+
 ##### 1.1. Módulo do Cliente (Storefront)
+
 [ ] RF001 - O sistema deve exibir na página inicial: produtos mais vendidos, tendências da estação e categorias principais (Camisa, Calça, Tênis, Acessórios).
 
 [ ] RF002 - O usuário deve poder buscar produtos por nome e filtrar por categoria, tamanho, cor e faixa de preço.
@@ -81,6 +84,7 @@ RN005 - Avaliações: Apenas usuários que compraram o produto e cujo pedido pos
 
 RN006 - Status do Pedido: - Aguardando Pagamento: Estado inicial.
 
+`Aguardando Pagamento`: O pedido foi criado, até 15 minutos para ser pago
 `Aprovado`: Pagamento confirmado.
 `Em Separação`: Logística iniciou o processo.
 `Em Trânsito`: Código de rastreio gerado.
@@ -88,7 +92,17 @@ RN006 - Status do Pedido: - Aguardando Pagamento: Estado inicial.
 `Finalizado`: 7 dias após entrega (prazo de troca expirado).
 `Reembolsado`: Estorno realizado.
 
-#### 4. Arquitetura Proposta (Clean Architecture)
+4. Arquitetura Proposta (Clean Architecture)
+
+4.1. Justificativa da Escolha
+
+A adoção da Clean Architecture no projeto Layer fundamenta-se em três pilares estratégicos:
+
+Complexidade do Domínio: E-commerces possuem regras densas e interdependentes (estoque, fiscal, logístico). O isolamento destas regras em camadas puras (Core) previne que atualizações de interface ou banco de dados corrompam a lógica de negócio.
+
+Manutenibilidade e Evolução: A arquitetura facilita a implementação de novas features de forma desacoplada. Alterações em um gateway de pagamento ou biblioteca de UI não impactam os Casos de Uso.
+
+Desenvolvimento Acelerado com IA: O desacoplamento permite o uso agressivo de Inteligência Artificial para gerar implementações rápidas. Como o código gerado fica confinado a adaptadores ou casos de uso específicos, a refatoração futura para otimização pode ser realizada com segurança total, sem riscos de efeitos colaterais em outras partes do sistema.
 
 A estrutura de pastas seguirá a divisão de responsabilidades, isolando o domínio da tecnologia.
 
@@ -96,7 +110,7 @@ A estrutura de pastas seguirá a divisão de responsabilidades, isolando o domí
 src/
 ├── core/                       # Camada de Domínio e Aplicação (Pura, sem React/Next)
 │   ├── domain/                 # Entidades (Product, Order, User) e Regras de Negócio
-│   │   └── enterprise-rules/   
+│   │   └── enterprise-rules/
 │   └── application/            # Casos de Uso (AddToCart, Checkout, CalculateShipping)
 │       ├── use-cases/
 │       └── gateways/           # Interfaces (Contratos) para Repositórios e APIs Externas
@@ -116,3 +130,21 @@ src/
     ├── api/                    # Rotas de API (Webhooks, etc)
     └── components/             # Componentes visuais (UI)
 ```
+
+5. Estratégia de Banco de Dados
+
+O projeto adota uma abordagem de persistência usando dois banco de dados diferentes, utilizando o melhor de dois mundos para resolver problemas distintos:
+
+5.1. PostgreSQL (Relacional)
+
+Utilizado para o "Core" do sistema que demanda alta integridade referencial e transações ACID complexas.
+
+Dados: Usuários, Produtos, Variantes, Categorias, Tabelas de Preço.
+
+Justificativa: Facilidade de integração com ORMs (Prisma), tipagem forte e ecossistema maduro para dados estruturados.
+
+5.2. MongoDB (NoSQL)
+
+Utilizado para dados que exigem alta performance de escrita, flexibilidade de schema ou imutabilidade documental.
+
+Pedidos (Orders): O pedido funciona como um "Snapshot" imutável do momento da compra. O modelo documental garante que os dados do pedido (preço pago, endereço de entrega na época) não sejam alterados caso o produto ou o cadastro do usuário mudem no futuro.
