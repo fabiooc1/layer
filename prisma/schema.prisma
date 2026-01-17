@@ -13,6 +13,11 @@ datasource db {
   provider = "postgresql"
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String
@@ -100,12 +105,11 @@ model UserAddress {
 }
 
 model ProductCategory {
-  id          Int     @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   slug        String
   description String?
-
-  products Product[]
+  products    Product[]
 
   @@unique([name, slug])
 }
@@ -116,25 +120,48 @@ model Product {
   slug        String
   description String?
 
-  categoryId   Int
-  category     ProductCategory @relation(fields: [categoryId], references: [id])
-  productRates ProductRate[]
+  categoryId Int
+  category   ProductCategory  @relation(fields: [categoryId], references: [id])
+  rates      ProductRate[]
+  variants   ProductVariant[]
 }
 
-enum Gender {
+enum ProductVariantGender {
   MASCULINO
   FEMININO
+  UNISSEX
+}
+
+enum ProductVariantSizeType {
+  ALPHA
+  NUMERICAL
+  SINGLE
+}
+
+model ProductVariantMedia {
+  id    Int       @id @default(autoincrement())
+  type  MediaType
+  url   String
+  index Int
+
+  productVariantId Int
+  productVariant   ProductVariant @relation(fields: [productVariantId], references: [id])
 }
 
 model ProductVariant {
-  id              Int    @id @default(autoincrement())
-  imageUrl        String
+  id              Int                  @id @default(autoincrement())
   name            String
-  gender          Gender
+  gender          ProductVariantGender
   priceInCents    Int
-  quantityInStock Int    @default(0)
+  quantityInStock Int                  @default(0)
+  productId       Int
 
+  sizeType ProductVariantSizeType
+  size     String
+
+  product   Product               @relation(fields: [productId], references: [id])
   cartItems CartItem[]
+  files     ProductVariantMedia[]
 }
 
 model ProductRate {
