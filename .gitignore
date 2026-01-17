@@ -42,3 +42,4 @@ next-env.d.ts
 
 /prisma-mongo/generated
 /prisma-pg/generated
+/generated/prisma
